@@ -6,4 +6,20 @@ info:
 servers:
   - url: 'http://localhost:8080'
 paths:
-  
+
+  /adhesions:
+    $ref: './paths/Membres.yaml#/adhesions'
+  /adhesions/{id}:
+    $ref: './paths/Membres.yaml#/adhesions_id'
+  /adhesions/{id}/paiement:
+    $ref: './paths/Membres.yaml#/paiements'
+  /membres/{id}:
+    $ref: './paths/Membres.yaml#/membres_id'
+  /membres/{id}/transferts:
+    $ref: './paths/Membres.yaml#/transferts'
+  /membres/{id}/demission:
+    $ref: './paths/Membres.yaml#/demissions'
+  /membres/{id}/historique-collectivites:
+    $ref: './paths/Membres.yaml#/historique'
+  /collectivites/{id}/membres:
+    $ref: './paths/Membres.yaml#/collectivite_membres'
