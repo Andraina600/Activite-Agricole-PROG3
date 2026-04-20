@@ -26,7 +26,7 @@ properties:
     type: string
     format: date
     description: Date de création de la collectivité
-    example: "2020-03-15"
+    example: "2026-04-19"
 
 required:
   - nom
