@@ -1,9 +1,19 @@
-openapi: 3.1.0
-info:
-  title: Title
-  description: Title
-  version: 1.0.0
-servers:
-  - url: 'https'
-paths:
-  
+post:
+   summary: Ouvrir une nouvelle collectivités
+   tags:
+     - Collectivites
+   requestBody:
+     required: true
+     content:
+       application/json:
+         schema:
+           $ref: '../components/schemas/Collectivites.yaml'
+   responses:
+     '201':
+       description: Collectivites créee avec succès
+     '400':
+       description: Conditions d'ouverture non remplies
+     '403':
+       description: Autorisation de la fédération manquante
+
+
