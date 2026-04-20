@@ -16,4 +16,17 @@ post:
      '403':
        description: Autorisation de la fédération manquante
 
+get:
+  summary: Récupère la liste des collectivités
+  tags:
+    - Collectivites
+  responses:
+    '200':
+      description: Liste des collectivités
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../components/schemas/Collectivites.yaml'
 
