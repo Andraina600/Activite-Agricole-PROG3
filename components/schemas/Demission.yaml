@@ -1,0 +1,34 @@
+type: object
+
+properties:
+
+  id:
+    type: integer
+    description: Identifiant unique de la démission
+    example: 8
+
+  membre_id:
+    type: integer
+    description: Identifiant du membre qui démissionne
+    example: 42
+
+  collectivite_id:
+    type: integer
+    description: Identifiant de la collectivité quittée
+    example: 1
+
+  motif:
+    type: string
+    description: Motif de la démission
+    example: "Ne trouve plus son intérêt dans la collectivité"
+
+  date_demission:
+    type: string
+    format: date
+    description: Date effective de la démission
+    example: "2026-04-20"
+
+required:
+  - membre_id
+  - collectivite_id
+  - date_demission
