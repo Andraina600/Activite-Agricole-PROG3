@@ -1,0 +1,49 @@
+type: object
+
+properties:
+
+  id:
+    type: integer
+    description: Identifiant unique de la demande de changement
+    example: 12
+
+  membre_id:
+    type: integer
+    description: Identifiant du membre qui souhaite changer de collectivité
+    example: 42
+
+  collectivite_origine_id:
+    type: integer
+    description: Identifiant de la collectivité d'origine
+    example: 1
+
+  collectivite_cible_id:
+    type: integer
+    description: Identifiant de la collectivité cible
+    example: 3
+
+  motif:
+    type: string
+    description: Motif du changement de collectivité
+    example: "Déménagement à Fianarantsoa"
+
+  date_demande:
+    type: string
+    format: date
+    description: Date de la demande de changement
+    example: "2026-04-16"
+
+  statut:
+    type: string
+    enum:
+      - EN_ATTENTE
+      - ACCEPTEE
+      - REFUSEE
+    description: Statut de la demande de changement
+    example: "EN_ATTENTE"
+
+required:
+  - membre_id
+  - collectivite_origine_id
+  - collectivite_cible_id
+  - date_demande
