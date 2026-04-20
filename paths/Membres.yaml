@@ -1,9 +1,332 @@
 openapi: 3.1.0
 info:
-  title: Title
-  description: Title
+  title: Partie B API
+  description: Partie B API
   version: 1.0.0
 servers:
-  - url: 'https'
+  - url: 'http://localhost:8000'
 paths:
-  
+
+  /adhesions:
+    post:
+      summary: Soumettre une nouvelle demande d'adhésion
+      description: >
+        Permet de soumettre une demande d'adhésion à une collectivité agricole.
+        Le futur membre doit être parrainé par un membre confirmé ayant
+        plus de 90 jours d'ancienneté au sein de la fédération.
+      tags:
+        - Membres
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/DemandeAdhesion.yaml'
+      responses:
+        '201':
+          description: Demande d'adhésion soumise avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/DemandeAdhesion.yaml'
+        '400':
+          description: >
+            Données invalides — champs manquants, parrain non éligible (pas membre confirmé ou ancienneté inférieure à 90 jours)
+        '404':
+          description: Collectivité ou parrain introuvable
+
+  /adhesions/{id}:
+    get:
+      summary: Consulter l'état d'une demande d'adhésion
+      description: >
+        Retourne l'état d'avancement d'une demande d'adhésion (EN_ATTENTE, ACCEPTEE ou REFUSEE).
+      tags:
+        - Membres
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique de la demande d'adhésion
+          schema:
+            type: integer
+            example: 101
+      responses:
+        '200':
+          description: Demande d'adhésion trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/DemandeAdhesion.yaml'
+        '404':
+          description: Demande d'adhésion introuvable
+
+  /adhesions/{id}/paiement:
+    post:
+      summary: Enregistrer le paiement du frais d'adhésion
+      description: >
+        Enregistre le règlement des 50 000 MGA du frais d'adhésion.
+        Seuls les modes de paiement mobile money et virement bancaire
+        sont acceptés. L'espèce est explicitement refusée pour l'adhésion.
+      tags:
+        - Membres
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique de la demande d'adhésion
+          schema:
+            type: integer
+            example: 101
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/PaiementAdhesion.yaml'
+      responses:
+        '201':
+          description: Paiement enregistré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/PaiementAdhesion.yaml'
+        '400':
+          description: >
+            Données invalides — montant incorrect, mode de paiement
+            non autorisé (espèce refusée) ou référence de transaction manquante
+        '404':
+          description: Demande d'adhésion introuvable
+        '409':
+          description: Un paiement a déjà été enregistré pour cette demande d'adhésion
+
+  /membres/{id}:
+    get:
+      summary: Récupérer la fiche complète d'un membre
+      description: >
+        Retourne les informations détaillées d'un membre — nom, prénom,
+        date de naissance, genre, adresse, métier, téléphone, email,
+        date d'adhésion, poste actuel, collectivité et statut actif.
+      tags:
+        - Membres
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du membre
+          schema:
+            type: integer
+            example: 42
+      responses:
+        '200':
+          description: Membre trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/Membre.yaml'
+        '404':
+          description: Membre introuvable
+
+    patch:
+      summary: Mettre à jour les informations personnelles d'un membre
+      description: >
+        Permet de modifier partiellement les informations personnelles
+        d'un membre (adresse, téléphone, email, métier).
+        Le poste et la collectivité ne sont pas modifiables via cet endpoint.
+      tags:
+        - Membres
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du membre
+          schema:
+            type: integer
+            example: 42
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                adresse:
+                  type: string
+                  description: Nouvelle adresse de résidence
+                  example: "Lot III K 12, Fianarantsoa"
+                telephone:
+                  type: string
+                  description: Nouveau numéro de téléphone
+                  example: "0349876543"
+                email:
+                  type: string
+                  format: email
+                  description: Nouvelle adresse email
+                  example: "jean.rakoto.new@email.mg"
+                metier:
+                  type: string
+                  description: Nouveau métier exercé
+                  example: "Maraîcher"
+      responses:
+        '200':
+          description: Informations du membre mises à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/Membre.yaml'
+        '400':
+          description: Données invalides — format email incorrect ou champ non autorisé
+        '404':
+          description: Membre introuvable
+
+  /membres/{id}/transferts:
+    post:
+      summary: Créer une demande de changement de collectivité
+      description: >
+        Permet à un membre actif de soumettre une demande de transfert
+        vers une autre collectivité, par exemple suite à un déménagement.
+      tags:
+        - Membres
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du membre
+          schema:
+            type: integer
+            example: 42
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/ChangementCollectivite.yaml'
+      responses:
+        '201':
+          description: Demande de transfert soumise avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/ChangementCollectivite.yaml'
+        '400':
+          description: >
+            Données invalides — collectivité cible identique
+            à la collectivité d'origine
+        '404':
+          description: Membre ou collectivité cible introuvable
+        '409':
+          description: Une demande de transfert est déjà en cours pour ce membre
+
+  /membres/{id}/demission:
+    post:
+      summary: Enregistrer la démission d'un membre
+      description: >
+        Enregistre la démission officielle d'un membre actif.
+        Cette action passe automatiquement le statut du membre à inactif
+        (actif = false) dans le système.
+      tags:
+        - Membres
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du membre
+          schema:
+            type: integer
+            example: 42
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/Demission.yaml'
+      responses:
+        '201':
+          description: Démission enregistrée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/Demission.yaml'
+        '400':
+          description: Données invalides — champs manquants
+        '404':
+          description: Membre introuvable
+        '409':
+          description: Le membre a déjà démissionné
+
+  /membres/{id}/historique-collectivites:
+    get:
+      summary: Lister l'historique des collectivités d'un membre
+      description: >
+        Retourne la liste chronologique de toutes les collectivités
+        auxquelles le membre a appartenu au fil du temps,
+        incluant les dates d'entrée et de sortie de chaque collectivité.
+      tags:
+        - Membres
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du membre
+          schema:
+            type: integer
+            example: 42
+      responses:
+        '200':
+          description: Historique des collectivités retourné avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../components/schemas/ChangementCollectivite.yaml'
+        '404':
+          description: Membre introuvable
+
+  /collectivites/{id}/membres:
+    get:
+      summary: Lister les membres d'une collectivité
+      description: >
+        Retourne la liste des membres appartenant à une collectivité.
+        Peut être filtré par poste ou par statut actif.
+      tags:
+        - Membres
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique de la collectivité
+          schema:
+            type: integer
+            example: 1
+        - name: poste
+          in: query
+          required: false
+          description: Filtrer les membres par poste
+          schema:
+            type: string
+            enum:
+              - PRESIDENT
+              - PRESIDENT_ADJOINT
+              - TRESORIER
+              - SECRETAIRE
+              - MEMBRE_CONFIRME
+              - MEMBRE_JUNIOR
+            example: "MEMBRE_CONFIRME"
+        - name: actif
+          in: query
+          required: false
+          description: Filtrer par statut actif (true) ou démissionnaire (false)
+          schema:
+            type: boolean
+            example: true
+      responses:
+        '200':
+          description: Liste des membres retournée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../components/schemas/Membre.yaml'
+        '404':
+          description: Collectivité introuvable
