@@ -1,9 +1,17 @@
-openapi: 3.1.0
-info:
-  title: Title
-  description: Title
-  version: 1.0.0
-servers:
-  - url: 'https'
-paths:
-  
+post:
+  summary: Enregistre une cotisation
+  tags:
+    - Cotisation
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/Cotisation.yaml'
+  response:
+    '201':
+      description: Enregistrement d'une cotisation
+    '400':
+      description: Données invalides
+    '404':
+      description: Collectivités introuvable
