@@ -8,10 +8,6 @@ servers:
 
 paths:
 
-  # ============================================================
-  # PARTIE A — Ouverture d'une nouvelle collectivité
-  # ============================================================
-
   /collectivites:
     get:
       summary: Lister toutes les collectivités
@@ -61,10 +57,6 @@ paths:
                 $ref: '#/components/schemas/Collectivite'
         '404':
           description: Collectivité introuvable
-
-  # ============================================================
-  # PARTIE B — Admission d'un nouveau membre (mise à jour v2)
-  # ============================================================
 
   /collectivites/{id}/membres:
     get:
@@ -197,10 +189,6 @@ paths:
         '404':
           description: Membre ou collectivité introuvable
 
-  # ============================================================
-  # PARTIE C — Cotisations et paiements
-  # ============================================================
-
   /collectivites/{id}/cotisations:
     get:
       summary: Lister les cotisations d'une collectivité
@@ -272,10 +260,6 @@ paths:
         '404':
           description: Cotisation ou collectivité introuvable
 
-  # ============================================================
-  # PARTIE D — Situation de trésorerie
-  # ============================================================
-
   /collectivites/{id}/comptes:
     get:
       summary: Lister les comptes d'une collectivité
@@ -344,10 +328,6 @@ paths:
                 $ref: '#/components/schemas/Compte'
         '404':
           description: Compte ou collectivité introuvable
-
-  # ============================================================
-  # PARTIE E — Activités
-  # ============================================================
 
   /collectivites/{id}/activites:
     get:
@@ -418,10 +398,6 @@ paths:
         '404':
           description: Activité ou collectivité introuvable
 
-  # ============================================================
-  # PARTIE F — Assiduité des membres
-  # ============================================================
-
   /collectivites/{id}/activites/{activiteId}/presences:
     get:
       summary: Lister les présences d'une activité
@@ -475,10 +451,6 @@ paths:
           description: Données invalides
         '404':
           description: Activité, membre ou collectivité introuvable
-
-  # ============================================================
-  # PARTIE G — Statistiques d'une collectivité
-  # ============================================================
 
   /collectivites/{id}/statistiques:
     get:
@@ -557,10 +529,6 @@ paths:
                   $ref: '#/components/schemas/StatMembre'
         '404':
           description: Collectivité introuvable
-
-  # ============================================================
-  # PARTIE H — Statistiques de la fédération
-  # ============================================================
 
   /federation/statistiques:
     get:
@@ -654,10 +622,6 @@ paths:
                   $ref: '#/components/schemas/StatFederation'
         '400':
           description: Année invalide
-
-# ============================================================
-# COMPOSANTS — Schémas
-# ============================================================
 
 components:
   schemas:
