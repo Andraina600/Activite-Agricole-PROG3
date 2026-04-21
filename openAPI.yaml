@@ -7,21 +7,697 @@ servers:
   - url: 'http://localhost:8080'
 
 paths:
-  /adhesions:
-    $ref: './paths/B/Adhesions.yaml'
-  /adhesions/{id}:
-    $ref: './paths/B/AdhesionsId.yaml'
-  /adhesions/{id}/paiement:
-    $ref: './paths/B/AdhesionsPaiement.yaml'
-  /membres/{id}:
-    $ref: './paths/B/MembresId.yaml'
-  /membres/{id}/transferts:
-    $ref: './paths/B/MembresTransferts.yaml'
-  /membres/{id}/demission:
-    $ref: './paths/B/MembresDemission.yaml'
-  /membres/{id}/historique-collectivites:
-    $ref: './paths/B/MembresHistorique.yaml'
+
+  /collectivites:
+    get:
+      summary: Lister toutes les collectivités
+      tags: [Collectivités]
+      responses:
+        '200':
+          description: Liste des collectivités retournée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Collectivite'
+    post:
+      summary: Ouvrir une nouvelle collectivité
+      tags: [Collectivités]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Collectivite'
+      responses:
+        '201':
+          description: Collectivité créée avec succès
+        '400':
+          description: Conditions d'ouverture non remplies
+        '403':
+          description: Autorisation de la fédération manquante
+
+  /collectivites/{id}:
+    get:
+      summary: Obtenir une collectivité par son ID
+      tags: [Collectivités]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Collectivité trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collectivite'
+        '404':
+          description: Collectivité introuvable
+
   /collectivites/{id}/membres:
-    $ref: './paths/B/CollectivitesMembres.yaml'
+    get:
+      summary: Lister les membres d'une collectivité
+      tags: [Membres]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Liste des membres retournée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Membre'
+        '404':
+          description: Collectivité introuvable
+    post:
+      summary: Admettre un nouveau membre
+      tags: [Membres]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Membre'
+      responses:
+        '201':
+          description: Membre admis avec succès
+        '400':
+          description: Informations manquantes ou invalides
+        '403':
+          description: Parrain non valide ou ancienneté insuffisante
+        '404':
+          description: Collectivité introuvable
 
+  /collectivites/{id}/membres/{membreId}:
+    get:
+      summary: Obtenir un membre par son ID
+      tags: [Membres]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: membreId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Membre trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membre'
+        '404':
+          description: Membre ou collectivité introuvable
 
+  /collectivites/{id}/membres/{membreId}/demission:
+    post:
+      summary: Démissionner d'une collectivité
+      tags: [Membres]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: membreId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Démission enregistrée avec succès
+        '404':
+          description: Membre ou collectivité introuvable
+
+  /membres/{membreId}/changement-collectivite:
+    post:
+      summary: Changer de collectivité
+      tags: [Membres]
+      parameters:
+        - name: membreId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nouvelle_collectivite_id:
+                  type: integer
+                  description: ID de la nouvelle collectivité
+              required:
+                - nouvelle_collectivite_id
+      responses:
+        '200':
+          description: Changement de collectivité effectué avec succès
+        '404':
+          description: Membre ou collectivité introuvable
+
+  /collectivites/{id}/cotisations:
+    get:
+      summary: Lister les cotisations d'une collectivité
+      tags: [Cotisations]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Liste des cotisations retournée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cotisation'
+        '404':
+          description: Collectivité introuvable
+    post:
+      summary: Enregistrer une cotisation
+      tags: [Cotisations]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cotisation'
+      responses:
+        '201':
+          description: Cotisation enregistrée avec succès
+        '400':
+          description: Données invalides
+        '422':
+          description: Règle métier non respectée (montant invalide)
+        '404':
+          description: Collectivité introuvable
+
+  /collectivites/{id}/cotisations/{cotisationId}:
+    get:
+      summary: Obtenir une cotisation par son ID
+      tags: [Cotisations]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: cotisationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Cotisation trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cotisation'
+        '404':
+          description: Cotisation ou collectivité introuvable
+
+  /collectivites/{id}/comptes:
+    get:
+      summary: Lister les comptes d'une collectivité
+      tags: [Trésorerie]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Liste des comptes retournée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Compte'
+        '404':
+          description: Collectivité introuvable
+    post:
+      summary: Ajouter un compte à une collectivité
+      tags: [Trésorerie]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Compte'
+      responses:
+        '201':
+          description: Compte créé avec succès
+        '400':
+          description: Données invalides
+        '422':
+          description: Une caisse existe déjà pour cette collectivité
+
+  /collectivites/{id}/comptes/{compteId}:
+    get:
+      summary: Obtenir un compte par son ID
+      tags: [Trésorerie]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: compteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Compte trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Compte'
+        '404':
+          description: Compte ou collectivité introuvable
+
+  /collectivites/{id}/activites:
+    get:
+      summary: Lister les activités d'une collectivité
+      tags: [Activités]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Liste des activités retournée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Activite'
+        '404':
+          description: Collectivité introuvable
+    post:
+      summary: Planifier une nouvelle activité
+      tags: [Activités]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Activite'
+      responses:
+        '201':
+          description: Activité planifiée avec succès
+        '400':
+          description: Données invalides
+        '404':
+          description: Collectivité introuvable
+
+  /collectivites/{id}/activites/{activiteId}:
+    get:
+      summary: Obtenir une activité par son ID
+      tags: [Activités]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: activiteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Activité trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activite'
+        '404':
+          description: Activité ou collectivité introuvable
+
+  /collectivites/{id}/activites/{activiteId}/presences:
+    get:
+      summary: Lister les présences d'une activité
+      tags: [Assiduité]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: activiteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Liste des présences retournée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Presence'
+        '404':
+          description: Activité ou collectivité introuvable
+    post:
+      summary: Enregistrer une présence
+      tags: [Assiduité]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: activiteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Presence'
+      responses:
+        '201':
+          description: Présence enregistrée avec succès
+        '400':
+          description: Données invalides
+        '404':
+          description: Activité, membre ou collectivité introuvable
+
+components:
+  schemas:
+
+    Collectivite:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Numéro unique de la collectivité
+          example: 1
+        nom:
+          type: string
+          description: Nom unique de la collectivité
+          example: "Collectivité Rizicole d'Antananarivo"
+        ville:
+          type: string
+          description: Ville où exerce la collectivité
+          example: "Antananarivo"
+        specialite:
+          type: string
+          description: Spécialité agricole
+          example: "Riziculture"
+        date_creation:
+          type: string
+          format: date
+          description: Date de création
+          example: "2020-03-15"
+      required:
+        - nom
+        - ville
+        - specialite
+        - date_creation
+
+    Membre:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique du membre
+          example: 1
+        nom:
+          type: string
+          description: Nom du membre
+          example: "Rakoto"
+        prenom:
+          type: string
+          description: Prénom du membre
+          example: "Jean"
+        date_naissance:
+          type: string
+          format: date
+          description: Date de naissance
+          example: "1990-05-10"
+        genre:
+          type: string
+          enum:
+            - masculin
+            - feminin
+          description: Genre du membre
+          example: "masculin"
+        adresse:
+          type: string
+          description: Adresse du membre
+          example: "Lot 12 Antananarivo"
+        metier:
+          type: string
+          description: Métier exercé
+          example: "Riziculteur"
+        telephone:
+          type: string
+          description: Numéro de téléphone
+          example: "034 12 345 67"
+        email:
+          type: string
+          format: email
+          description: Adresse email
+          example: "jean.rakoto@email.com"
+        date_adhesion:
+          type: string
+          format: date
+          description: Date d'adhésion à la fédération
+          example: "2024-01-15"
+        parrain_id:
+          type: integer
+          description: ID du membre confirmé qui parraine
+          example: 5
+      required:
+        - nom
+        - prenom
+        - date_naissance
+        - genre
+        - adresse
+        - metier
+        - telephone
+        - email
+        - parrain_id
+
+    Cotisation:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de la cotisation
+          example: 1
+        montant:
+          type: number
+          format: float
+          description: Montant de la cotisation en Ariary (MGA)
+          example: 50000.0
+        date:
+          type: string
+          format: date
+          description: Date de l'encaissement
+          example: "2026-04-20"
+        type_cotisation:
+          type: string
+          enum:
+            - mensuelle
+            - annuelle
+            - ponctuelle
+          description: Type de cotisation
+          example: mensuelle
+        mode_paiement:
+          type: string
+          enum:
+            - espece
+            - virement_bancaire
+            - mobile_money
+          description: Mode de paiement
+          example: mobile_money
+        membre_id:
+          type: integer
+          description: ID du membre qui cotise
+          example: 3
+      required:
+        - montant
+        - date
+        - type_cotisation
+        - mode_paiement
+        - membre_id
+
+    Compte:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique du compte
+          example: 1
+        type_compte:
+          type: string
+          enum:
+            - caisse
+            - bancaire
+            - mobile_money
+          description: Type de compte
+          example: bancaire
+        solde:
+          type: number
+          format: float
+          description: Solde actuel en Ariary (MGA)
+          example: 150000.0
+        titulaire:
+          type: string
+          description: Nom du titulaire du compte
+          example: "Rakoto Jean"
+        nom_banque:
+          type: string
+          enum:
+            - BRED
+            - MCB
+            - BMOI
+            - BOA
+            - BGFI
+            - AFG
+            - ACCES_BANQUE
+            - BAOBAB
+            - SIPEM
+          description: Nom de la banque (si compte bancaire)
+          example: BOA
+        numero_compte:
+          type: string
+          description: Numéro de compte bancaire (23 chiffres)
+          pattern: '^\d{5}\d{5}\d{11}\d{2}$'
+          example: "00001000011234567890100"
+        service_mobile:
+          type: string
+          enum:
+            - Orange_Money
+            - Mvola
+            - Airtel_Money
+          description: Service mobile money (si compte mobile money)
+          example: Mvola
+        numero_telephone:
+          type: string
+          description: Numéro de téléphone (si compte mobile money)
+          example: "034 12 345 67"
+      required:
+        - type_compte
+        - solde
+        - titulaire
+
+    Activite:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de l'activité
+          example: 1
+        type_activite:
+          type: string
+          enum:
+            - assemblee_generale
+            - formation_junior
+            - exceptionnelle
+          description: Type d'activité
+          example: assemblee_generale
+        date:
+          type: string
+          format: date
+          description: Date de l'activité
+          example: "2026-05-10"
+        description:
+          type: string
+          description: Description de l'activité
+          example: "Assemblée générale mensuelle de mai"
+        presence_obligatoire:
+          type: boolean
+          description: Présence obligatoire pour tous les membres
+          example: true
+      required:
+        - type_activite
+        - date
+        - presence_obligatoire
+
+    Presence:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de la présence
+          example: 1
+        membre_id:
+          type: integer
+          description: ID du membre concerné
+          example: 3
+        statut:
+          type: string
+          enum:
+            - present
+            - absent_excuse
+            - absent
+          description: Statut de présence du membre
+          example: present
+        motif:
+          type: string
+          description: Motif d'absence (si excusé)
+          example: "Maladie"
+      required:
+        - membre_id
+        - statut
