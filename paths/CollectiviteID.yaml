@@ -15,6 +15,13 @@ get:
         application/json:
           schema:
             $ref: '../components/schemas/Collectivites.yaml'
+    '400':
+      description: Erreur au niveau de l'URL
+      content:
+        application/json:
+          schema:
+            type: string
+            example: "Erreur au niveau de l'URL"
     '404':
       description: Collectivite non trouvé
       content:
@@ -22,3 +29,10 @@ get:
           schema:
             type: string
             example: "Collectivités non trouvé"
+    '500':
+      description: Erreur au niveau du serveur
+      content:
+        application/json:
+          schema:
+            type: string
+            example: "Erreur au niveau du serveur"
