@@ -1,0 +1,36 @@
+post:
+  summary: Créer une demande de changement de collectivité
+  description: >
+    Permet à un membre actif de soumettre une demande de transfert
+    vers une autre collectivité, par exemple suite à un déménagement.
+  tags:
+    - Membres
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: Identifiant unique du membre
+      schema:
+        type: integer
+        example: 42
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/ChangementCollectivite.yaml'
+  responses:
+    '201':
+      description: Demande de transfert soumise avec succès
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/ChangementCollectivite.yaml'
+    '400':
+      description: >
+        Données invalides — collectivité cible identique
+        à la collectivité d'origine
+    '404':
+      description: Membre ou collectivité cible introuvable
+    '409':
+      description: Une demande de transfert est déjà en cours pour ce membre

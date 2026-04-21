@@ -1,25 +1,27 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
-  title: Fédération de Collectivités Agircoles
+  title: Fédération de Collectivités Agricoles
   description: API de gestion de la fédération agricole à Madagascar
   version: 1.0.0
 servers:
   - url: 'http://localhost:8080'
-paths:
 
+paths:
   /adhesions:
-    $ref: './paths/Membres.yaml#/adhesions'
+    $ref: './paths/B/Adhesions.yaml'
   /adhesions/{id}:
-    $ref: './paths/Membres.yaml#/adhesions_id'
+    $ref: './paths/B/AdhesionsId.yaml'
   /adhesions/{id}/paiement:
-    $ref: './paths/Membres.yaml#/paiements'
+    $ref: './paths/B/AdhesionsPaiement.yaml'
   /membres/{id}:
-    $ref: './paths/Membres.yaml#/membres_id'
+    $ref: './paths/B/MembresId.yaml'
   /membres/{id}/transferts:
-    $ref: './paths/Membres.yaml#/transferts'
+    $ref: './paths/B/MembresTransferts.yaml'
   /membres/{id}/demission:
-    $ref: './paths/Membres.yaml#/demissions'
+    $ref: './paths/B/MembresDemission.yaml'
   /membres/{id}/historique-collectivites:
-    $ref: './paths/Membres.yaml#/historique'
+    $ref: './paths/B/MembresHistorique.yaml'
   /collectivites/{id}/membres:
-    $ref: './paths/Membres.yaml#/collectivite_membres'
+    $ref: './paths/B/CollectivitesMembres.yaml'
+
+
