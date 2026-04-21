@@ -8,7 +8,7 @@ servers:
 paths:
 
   /collectivites:
-    $ref: './paths/Collectivites.yaml'
+    $ref: './paths/A/Collectivites.yaml'
 
   /collectivites/{id}:
-    $ref: './paths/CollectiviteID.yaml'
+    $ref: './paths/A/CollectiviteID.yaml'

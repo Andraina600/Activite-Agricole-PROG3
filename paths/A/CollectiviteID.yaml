@@ -14,7 +14,7 @@ get:
       content:
         application/json:
           schema:
-            $ref: '../components/schemas/Collectivites.yaml'
+            $ref: '../../components/schemas/Collectivites.yaml'
     '400':
       description: Erreur au niveau de l'URL
       content:

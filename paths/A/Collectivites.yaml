@@ -7,14 +7,14 @@ post:
      content:
        application/json:
          schema:
-           $ref: '../components/schemas/Collectivites.yaml'
+           $ref: '../../components/schemas/Collectivites.yaml'
    responses:
      '201':
        description: Collectivites créee avec succès
        content:
          application/json:
            schema:
-             $ref: '../components/schemas/Collectivites.yaml'
+             $ref: '../../components/schemas/Collectivites.yaml'
      '400':
        description: Conditions d'ouverture non remplies
        content:
@@ -49,7 +49,7 @@ get:
           schema:
             type: array
             items:
-              $ref: '../components/schemas/Collectivites.yaml'
+              $ref: '../../components/schemas/Collectivites.yaml'
     '400':
       description: Erreur au niveau de l'URL
       content:
