@@ -2,11 +2,15 @@ openapi: 3.0.0
 info:
   title: Fédération de Collectivités Agricoles
   description: API de gestion de la fédération agricole à Madagascar
-  version: 1.0.0
+  version: 2.0.0
 servers:
   - url: 'http://localhost:8080'
 
 paths:
+
+  # ============================================================
+  # PARTIE A — Ouverture d'une nouvelle collectivité
+  # ============================================================
 
   /collectivites:
     get:
@@ -58,6 +62,10 @@ paths:
         '404':
           description: Collectivité introuvable
 
+  # ============================================================
+  # PARTIE B — Admission d'un nouveau membre (mise à jour v2)
+  # ============================================================
+
   /collectivites/{id}/membres:
     get:
       summary: Lister les membres d'une collectivité
@@ -81,6 +89,13 @@ paths:
           description: Collectivité introuvable
     post:
       summary: Admettre un nouveau membre
+      description: >
+        Conditions d'admission mises à jour le 21 avril 2026.
+        Le candidat doit être parrainé par au moins deux membres confirmés,
+        dont le nombre de parrains issus de la collectivité cible doit être
+        supérieur ou égal au nombre de parrains extérieurs.
+        Il doit aussi régler les frais d'adhésion (50 000 MGA) ainsi que
+        l'intégralité des cotisations annuelles imposées par la collectivité.
       tags: [Membres]
       parameters:
         - name: id
@@ -93,16 +108,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Membre'
+              $ref: '#/components/schemas/DemandeAdhesion'
       responses:
         '201':
           description: Membre admis avec succès
         '400':
           description: Informations manquantes ou invalides
         '403':
-          description: Parrain non valide ou ancienneté insuffisante
+          description: >
+            Conditions de parrainage non respectées —
+            le nombre de parrains internes doit être >= parrains externes
         '404':
           description: Collectivité introuvable
+        '422':
+          description: Frais d'adhésion ou cotisations annuelles non réglés
 
   /collectivites/{id}/membres/{membreId}:
     get:
@@ -178,6 +197,10 @@ paths:
         '404':
           description: Membre ou collectivité introuvable
 
+  # ============================================================
+  # PARTIE C — Cotisations et paiements
+  # ============================================================
+
   /collectivites/{id}/cotisations:
     get:
       summary: Lister les cotisations d'une collectivité
@@ -249,6 +272,10 @@ paths:
         '404':
           description: Cotisation ou collectivité introuvable
 
+  # ============================================================
+  # PARTIE D — Situation de trésorerie
+  # ============================================================
+
   /collectivites/{id}/comptes:
     get:
       summary: Lister les comptes d'une collectivité
@@ -317,6 +344,10 @@ paths:
                 $ref: '#/components/schemas/Compte'
         '404':
           description: Compte ou collectivité introuvable
+
+  # ============================================================
+  # PARTIE E — Activités
+  # ============================================================
 
   /collectivites/{id}/activites:
     get:
@@ -387,6 +418,10 @@ paths:
         '404':
           description: Activité ou collectivité introuvable
 
+  # ============================================================
+  # PARTIE F — Assiduité des membres
+  # ============================================================
+
   /collectivites/{id}/activites/{activiteId}/presences:
     get:
       summary: Lister les présences d'une activité
@@ -441,6 +476,189 @@ paths:
         '404':
           description: Activité, membre ou collectivité introuvable
 
+  # ============================================================
+  # PARTIE G — Statistiques d'une collectivité
+  # ============================================================
+
+  /collectivites/{id}/statistiques:
+    get:
+      summary: Obtenir les statistiques globales d'une collectivité
+      description: >
+        Retourne le taux d'assiduité global et le nombre de membres
+        inscrits pour le rapport mensuel à envoyer à la fédération.
+      tags: [Statistiques]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: date_debut
+          in: query
+          required: true
+          description: Début de la période
+          schema:
+            type: string
+            format: date
+            example: "2026-01-01"
+        - name: date_fin
+          in: query
+          required: true
+          description: Fin de la période
+          schema:
+            type: string
+            format: date
+            example: "2026-04-21"
+      responses:
+        '200':
+          description: Statistiques retournées avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatCollectivite'
+        '404':
+          description: Collectivité introuvable
+
+  /collectivites/{id}/statistiques/membres:
+    get:
+      summary: Obtenir les statistiques détaillées par membre
+      description: >
+        Retourne pour chaque membre actif son taux d'assiduité,
+        le montant encaissé et le montant impayé sur une période donnée.
+      tags: [Statistiques]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: date_debut
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            example: "2026-01-01"
+        - name: date_fin
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            example: "2026-04-21"
+      responses:
+        '200':
+          description: Statistiques membres retournées avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StatMembre'
+        '404':
+          description: Collectivité introuvable
+
+  # ============================================================
+  # PARTIE H — Statistiques de la fédération
+  # ============================================================
+
+  /federation/statistiques:
+    get:
+      summary: Obtenir le rapport global de la fédération
+      description: >
+        Retourne pour chaque collectivité le taux d'assiduité global,
+        le pourcentage de membres à jour dans leurs cotisations,
+        et le nombre de nouveaux adhérents sur une période donnée.
+        Utilisé pour le rapport mensuel et annuel du secrétaire de la fédération.
+      tags: [Statistiques Fédération]
+      parameters:
+        - name: date_debut
+          in: query
+          required: true
+          description: Début de la période
+          schema:
+            type: string
+            format: date
+            example: "2026-01-01"
+        - name: date_fin
+          in: query
+          required: true
+          description: Fin de la période
+          schema:
+            type: string
+            format: date
+            example: "2026-04-21"
+      responses:
+        '200':
+          description: Rapport global retourné avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StatFederation'
+        '400':
+          description: Période invalide
+
+  /federation/statistiques/rapport-mensuel:
+    get:
+      summary: Obtenir le rapport mensuel de la fédération
+      tags: [Statistiques Fédération]
+      parameters:
+        - name: mois
+          in: query
+          required: true
+          description: Mois du rapport (format MM)
+          schema:
+            type: string
+            example: "04"
+        - name: annee
+          in: query
+          required: true
+          description: Année du rapport (format YYYY)
+          schema:
+            type: string
+            example: "2026"
+      responses:
+        '200':
+          description: Rapport mensuel retourné avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StatFederation'
+        '400':
+          description: Mois ou année invalide
+
+  /federation/statistiques/rapport-annuel:
+    get:
+      summary: Obtenir le rapport annuel de la fédération
+      tags: [Statistiques Fédération]
+      parameters:
+        - name: annee
+          in: query
+          required: true
+          description: Année du rapport (format YYYY)
+          schema:
+            type: string
+            example: "2026"
+      responses:
+        '200':
+          description: Rapport annuel retourné avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StatFederation'
+        '400':
+          description: Année invalide
+
+# ============================================================
+# COMPOSANTS — Schémas
+# ============================================================
+
 components:
   schemas:
 
@@ -468,65 +686,96 @@ components:
           format: date
           description: Date de création
           example: "2020-03-15"
+        cotisation_annuelle:
+          type: number
+          format: float
+          description: Montant des cotisations annuelles imposées par la collectivité (MGA)
+          example: 200000.0
       required:
         - nom
         - ville
         - specialite
         - date_creation
+        - cotisation_annuelle
 
-    Membre:
+    Parrain:
       type: object
+      description: Informations sur un parrain et sa relation avec le candidat
       properties:
-        id:
+        membre_id:
           type: integer
-          description: Identifiant unique du membre
+          description: ID du membre confirmé qui parraine
+          example: 5
+        collectivite_id:
+          type: integer
+          description: ID de la collectivité du parrain
           example: 1
+        relation:
+          type: string
+          description: Nature de la relation entre le parrain et le candidat
+          enum:
+            - famille
+            - ami
+            - collegue
+            - autre
+          example: famille
+      required:
+        - membre_id
+        - collectivite_id
+        - relation
+
+    DemandeAdhesion:
+      type: object
+      description: >
+        Demande d'adhésion d'un nouveau membre (conditions mises à jour le 21/04/2026).
+        Au moins 2 parrains confirmés requis, dont le nombre de parrains internes
+        doit être >= au nombre de parrains externes.
+      properties:
         nom:
           type: string
-          description: Nom du membre
           example: "Rakoto"
         prenom:
           type: string
-          description: Prénom du membre
           example: "Jean"
         date_naissance:
           type: string
           format: date
-          description: Date de naissance
           example: "1990-05-10"
         genre:
           type: string
           enum:
             - masculin
             - feminin
-          description: Genre du membre
-          example: "masculin"
+          example: masculin
         adresse:
           type: string
-          description: Adresse du membre
           example: "Lot 12 Antananarivo"
         metier:
           type: string
-          description: Métier exercé
           example: "Riziculteur"
         telephone:
           type: string
-          description: Numéro de téléphone
           example: "034 12 345 67"
         email:
           type: string
           format: email
-          description: Adresse email
           example: "jean.rakoto@email.com"
-        date_adhesion:
-          type: string
-          format: date
-          description: Date d'adhésion à la fédération
-          example: "2024-01-15"
-        parrain_id:
-          type: integer
-          description: ID du membre confirmé qui parraine
-          example: 5
+        parrains:
+          type: array
+          description: Liste des parrains (minimum 2 membres confirmés)
+          minItems: 2
+          items:
+            $ref: '#/components/schemas/Parrain'
+        frais_adhesion:
+          type: number
+          format: float
+          description: Frais d'adhésion fixes (50 000 MGA)
+          example: 50000.0
+        cotisation_annuelle_payee:
+          type: number
+          format: float
+          description: Montant des cotisations annuelles de la collectivité réglées
+          example: 200000.0
       required:
         - nom
         - prenom
@@ -536,14 +785,74 @@ components:
         - metier
         - telephone
         - email
-        - parrain_id
+        - parrains
+        - frais_adhesion
+        - cotisation_annuelle_payee
+
+    Membre:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nom:
+          type: string
+          example: "Rakoto"
+        prenom:
+          type: string
+          example: "Jean"
+        date_naissance:
+          type: string
+          format: date
+          example: "1990-05-10"
+        genre:
+          type: string
+          enum:
+            - masculin
+            - feminin
+          example: masculin
+        adresse:
+          type: string
+          example: "Lot 12 Antananarivo"
+        metier:
+          type: string
+          example: "Riziculteur"
+        telephone:
+          type: string
+          example: "034 12 345 67"
+        email:
+          type: string
+          format: email
+          example: "jean.rakoto@email.com"
+        date_adhesion:
+          type: string
+          format: date
+          example: "2024-01-15"
+        poste:
+          type: string
+          enum:
+            - president
+            - president_adjoint
+            - tresorier
+            - secretaire
+            - membre_confirme
+            - membre_junior
+          example: membre_junior
+      required:
+        - nom
+        - prenom
+        - date_naissance
+        - genre
+        - adresse
+        - metier
+        - telephone
+        - email
 
     Cotisation:
       type: object
       properties:
         id:
           type: integer
-          description: Identifiant unique de la cotisation
           example: 1
         montant:
           type: number
@@ -553,7 +862,6 @@ components:
         date:
           type: string
           format: date
-          description: Date de l'encaissement
           example: "2026-04-20"
         type_cotisation:
           type: string
@@ -561,7 +869,6 @@ components:
             - mensuelle
             - annuelle
             - ponctuelle
-          description: Type de cotisation
           example: mensuelle
         mode_paiement:
           type: string
@@ -569,11 +876,9 @@ components:
             - espece
             - virement_bancaire
             - mobile_money
-          description: Mode de paiement
           example: mobile_money
         membre_id:
           type: integer
-          description: ID du membre qui cotise
           example: 3
       required:
         - montant
@@ -587,7 +892,6 @@ components:
       properties:
         id:
           type: integer
-          description: Identifiant unique du compte
           example: 1
         type_compte:
           type: string
@@ -595,7 +899,6 @@ components:
             - caisse
             - bancaire
             - mobile_money
-          description: Type de compte
           example: bancaire
         solde:
           type: number
@@ -604,7 +907,6 @@ components:
           example: 150000.0
         titulaire:
           type: string
-          description: Nom du titulaire du compte
           example: "Rakoto Jean"
         nom_banque:
           type: string
@@ -618,7 +920,6 @@ components:
             - ACCES_BANQUE
             - BAOBAB
             - SIPEM
-          description: Nom de la banque (si compte bancaire)
           example: BOA
         numero_compte:
           type: string
@@ -631,11 +932,9 @@ components:
             - Orange_Money
             - Mvola
             - Airtel_Money
-          description: Service mobile money (si compte mobile money)
           example: Mvola
         numero_telephone:
           type: string
-          description: Numéro de téléphone (si compte mobile money)
           example: "034 12 345 67"
       required:
         - type_compte
@@ -647,7 +946,6 @@ components:
       properties:
         id:
           type: integer
-          description: Identifiant unique de l'activité
           example: 1
         type_activite:
           type: string
@@ -655,20 +953,16 @@ components:
             - assemblee_generale
             - formation_junior
             - exceptionnelle
-          description: Type d'activité
           example: assemblee_generale
         date:
           type: string
           format: date
-          description: Date de l'activité
           example: "2026-05-10"
         description:
           type: string
-          description: Description de l'activité
           example: "Assemblée générale mensuelle de mai"
         presence_obligatoire:
           type: boolean
-          description: Présence obligatoire pour tous les membres
           example: true
       required:
         - type_activite
@@ -680,11 +974,9 @@ components:
       properties:
         id:
           type: integer
-          description: Identifiant unique de la présence
           example: 1
         membre_id:
           type: integer
-          description: ID du membre concerné
           example: 3
         statut:
           type: string
@@ -692,12 +984,98 @@ components:
             - present
             - absent_excuse
             - absent
-          description: Statut de présence du membre
           example: present
         motif:
           type: string
-          description: Motif d'absence (si excusé)
+          description: Motif d'absence si excusé
           example: "Maladie"
       required:
         - membre_id
         - statut
+
+    StatMembre:
+      type: object
+      description: Statistiques détaillées d'un membre actif sur une période donnée
+      properties:
+        membre_id:
+          type: integer
+          example: 3
+        nom:
+          type: string
+          example: "Rakoto Jean"
+        taux_assiduite:
+          type: number
+          format: float
+          description: Taux d'assiduité du membre en pourcentage
+          example: 85.5
+        montant_encaisse:
+          type: number
+          format: float
+          description: Total des cotisations payées sur la période (MGA)
+          example: 150000.0
+        montant_impaye:
+          type: number
+          format: float
+          description: Total des cotisations impayées sur la période (MGA)
+          example: 50000.0
+      required:
+        - membre_id
+        - taux_assiduite
+        - montant_encaisse
+        - montant_impaye
+
+    StatCollectivite:
+      type: object
+      description: Statistiques globales d'une collectivité pour le rapport mensuel
+      properties:
+        collectivite_id:
+          type: integer
+          example: 1
+        nom_collectivite:
+          type: string
+          example: "Collectivité Rizicole d'Antananarivo"
+        taux_assiduite_global:
+          type: number
+          format: float
+          description: Taux d'assiduité global de la collectivité en pourcentage
+          example: 78.0
+        nombre_membres:
+          type: integer
+          description: Nombre total de membres inscrits
+          example: 45
+      required:
+        - collectivite_id
+        - taux_assiduite_global
+        - nombre_membres
+
+    StatFederation:
+      type: object
+      description: >
+        Statistiques globales par collectivité pour le rapport
+        mensuel et annuel de la fédération
+      properties:
+        collectivite_id:
+          type: integer
+          example: 1
+        nom_collectivite:
+          type: string
+          example: "Collectivité Rizicole d'Antananarivo"
+        taux_assiduite_global:
+          type: number
+          format: float
+          description: Taux d'assiduité global de la collectivité sur la période (%)
+          example: 78.0
+        pourcentage_cotisations_a_jour:
+          type: number
+          format: float
+          description: Pourcentage de membres à jour dans leurs cotisations sur la période (%)
+          example: 92.5
+        nombre_nouveaux_adherents:
+          type: integer
+          description: Nombre de nouveaux membres ayant adhéré sur la période
+          example: 12
+      required:
+        - collectivite_id
+        - taux_assiduite_global
+        - pourcentage_cotisations_a_jour
+        - nombre_nouveaux_adherents
